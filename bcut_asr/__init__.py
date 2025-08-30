@@ -37,6 +37,9 @@ SUPPORT_SOUND_FORMAT = Literal["flac", "aac", "m4a", "mp3", "wav"]
 INFILE_FMT = ["flac", "aac", "m4a", "mp3", "wav"]
 OUTFILE_FMT = ["srt", "json", "lrc", "txt"]
 
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+}
 
 def ffmpeg_render(media_file: str) -> bytes:
     "提取视频伴音并转码为aac格式"
@@ -162,6 +165,7 @@ class APIError(Exception):
 
 class BcutASR:
     "必剪 语音识别接口"
+
     session: requests.Session
     sound_name: str
     sound_bin: bytes
@@ -223,6 +227,7 @@ class BcutASR:
                 "resource_file_type": self.sound_fmt,
                 "model_id": 7,
             },
+            headers=HEADERS
         )
         resp.raise_for_status()
         resp = resp.json()
@@ -251,7 +256,9 @@ class BcutASR:
             resp = self.session.put(
                 self.__upload_urls[clip],
                 data=self.sound_bin[start_range:end_range],
+                headers=HEADERS
             )
+
             resp.raise_for_status()
             etag = resp.headers.get("Etag")
             self.__etags.append(etag)
@@ -268,6 +275,7 @@ class BcutASR:
                 "upload_id": self.__upload_id,
                 "model_id": 7,
             },
+            headers=HEADERS
         )
         resp.raise_for_status()
         resp = resp.json()
@@ -281,7 +289,9 @@ class BcutASR:
     def create_task(self) -> str:
         "开始创建转换任务"
         resp = self.session.post(
-            API_CREATE_TASK, json={"resource": self.__download_url, "model_id": "7"}
+            API_CREATE_TASK,
+            json={"resource": self.__download_url, "model_id": "7"},
+            headers=HEADERS
         )
         resp.raise_for_status()
         resp = resp.json()
@@ -296,7 +306,9 @@ class BcutASR:
     def result(self, task_id: Optional[str] = None) -> ResultRspSchema:
         "查询转换结果"
         resp = self.session.get(
-            API_QUERY_RESULT, params={"model_id": 7, "task_id": task_id or self.task_id}
+            API_QUERY_RESULT,
+            params={"model_id": 7, "task_id": task_id or self.task_id},
+            headers=HEADERS
         )
         resp.raise_for_status()
         resp = resp.json()

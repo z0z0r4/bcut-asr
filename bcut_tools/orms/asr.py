@@ -1,5 +1,5 @@
 from enum import Enum
-
+from typing import Optional
 from pydantic import BaseModel
 
 
@@ -115,7 +115,7 @@ class ResultRspSchema(BaseModel):
     """任务结果查询响应"""
 
     task_id: str  # 任务id
-    result: str  # 结果数据-json
+    result: Optional[str] = None   # 结果数据-json，state 为 1 时 result 字段不存在
     remark: str  # 任务状态详情
     state: ResultStateEnum  # 任务状态
 
